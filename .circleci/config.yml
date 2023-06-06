@@ -80,7 +80,7 @@ workflows:
           requires: 
             - unit-test1
             - unit-test2 
-      - create_artifacts_and_zip:
+      - create_build:
           requires:
             - need_approval
 
