@@ -1,0 +1,109 @@
+version: '2.1'
+jobs:
+  build:
+    docker:
+      - image: cimg/python:3.11.2
+    steps:
+      - checkout
+      - run:
+          name: Running main file
+          command: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python3 billing_system.py
+
+  unit-test1:
+      docker:
+        - image: cimg/python:3.11.2  
+      steps:
+        - checkout
+        - run:
+            name: Run Unit Test 1 
+            command: python3 test_billing_system_1.py 
+
+  unit-test2:
+    docker:
+      - image: cimg/python:3.11.2
+    steps:
+      - checkout
+      - run:
+          name: Run Unit Test 2 
+          command: python3 test_billing_system_2.py   
+
+  create_build:
+    docker:
+      - image: cimg/python:3.11.2
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: |
+          docker build -t demo-pyapp .
+          docker images 
+          mkdir -p imagedir
+          mv demo-pyapp.tar imagedir/
+        
+      - store_artifacts:
+          path: imagedir
+
+
+  build_cache:
+    docker:
+      - image: cimg/python:3.11.2
+    steps:
+      - checkout
+      - restore_cache:
+          key: python-requirements-V1-{{ checksum "requirements.txt" }}
+      - run:
+          name: Running main file
+          command: python3 billing_system.py
+      - save_cache:
+          key: python-requirements-V1-{{ checksum "requirements.txt" }}
+          paths:
+            - "~/.cache/pip"
+            - "/usr/local/lib/python3.10/site-packages"
+            - "/usr/local/lib/site-python"         
+
+
+workflows:
+  version: 2
+  kousalya-caselet: 
+    jobs:
+      - build
+      - unit-test1: 
+          requires:
+            - build
+      - unit-test2: 
+          requires:
+            - build
+      - need_approval:
+          type: approval
+          requires: 
+            - unit-test1
+            - unit-test2 
+      - create_artifacts_and_zip:
+          requires:
+            - need_approval
+
+  workflow_two:
+    triggers:
+      - schedule:
+          cron: "0 17 * * *"
+          filters: 
+            branches:
+              only:
+                - caselet-demo     
+    jobs:
+      - build_cache
+      - unit-test1:
+          requires:
+            - build_cache
+      - unit-test-2:
+          requires:
+            - unit-test1
+      - approval:
+          type: approval
+          requires:
+              - unit-test2
+      - create_build:
+          requires:
+            - approval                
