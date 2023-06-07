@@ -30,20 +30,26 @@ jobs:
           name: Run Unit Test 2 
           command: python3 test_billing_system_2.py   
 
-  create_build:
+  docker_build:
     docker:
       - image: cimg/python:3.11.2
     steps:
       - checkout
       - setup_remote_docker
       - run: |
-          docker build -t demo-pyapp .
-          docker images 
-          mkdir -p imagedir
-          mv demo-pyapp.tar imagedir/
+          docker build . -t demo-pyapp
+          docker image ls
+      - run: 
+          name: Save Docker image
+          command: |
+            mkdir -p /docimage
+            docker save -o /docimage/demo-pyapp.tar demo-pyapp
+      - store_artifacts:
+          path: /docimage
+          destination: artifacts
         
       - store_artifacts:
-          path: imagedir
+          path: imagefolder
 
 
   build_cache:
