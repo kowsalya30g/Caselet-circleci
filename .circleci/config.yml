@@ -42,7 +42,7 @@ jobs:
       - run: 
           name: Save Docker image
           command: |
-            mkdir -p /docimage
+            sudo mkdir -p /docimage
             docker save -o /docimage/demo-pyapp.tar demo-pyapp
       - store_artifacts:
           path: /docimage
