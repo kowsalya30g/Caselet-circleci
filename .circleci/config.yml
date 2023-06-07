@@ -86,7 +86,7 @@ workflows:
           requires: 
             - unit-test1
             - unit-test2 
-      - create_build:
+      - docker_build:
           requires:
             - need_approval
 
@@ -110,6 +110,6 @@ workflows:
           type: approval
           requires:
               - unit-test2
-      - create_build:
+      - docker_build:
           requires:
             - approval                
