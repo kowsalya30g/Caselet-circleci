@@ -91,13 +91,13 @@ workflows:
           filters: 
             branches:
               only:
-                - caselet-demo     
+                - circleci-demo     
     jobs:
       - build_cache
       - unit-test1:
           requires:
             - build_cache
-      - unit-test-2:
+      - unit-test2:
           requires:
             - unit-test1
       - approval:
